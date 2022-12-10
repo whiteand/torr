@@ -14,7 +14,9 @@ pub enum ParseError {
 
 pub type IParseResult<T> = std::result::Result<T, ParseError>;
 
-pub fn try_parse_value<Bytes>(iter: &mut std::iter::Peekable<Bytes>) -> IParseResult<Value>
+fn try_parse_value_from_peekable<Bytes>(
+    iter: &mut std::iter::Peekable<Bytes>,
+) -> IParseResult<Value>
 where
     Bytes: Iterator<Item = u8>,
 {
@@ -83,8 +85,8 @@ fn parse_dictionary<Bytes: Iterator<Item = u8>>(
                 break Ok(Value::Dictionary(dict));
             }
             Some(_) => {
-                let key = try_parse_value(it)?;
-                let value = try_parse_value(it)?;
+                let key = try_parse_value_from_peekable(it)?;
+                let value = try_parse_value_from_peekable(it)?;
                 match key {
                     Value::String(_) => {}
                     _ => return Err(ParseError::KeyExpectedToBeAString),
@@ -105,7 +107,7 @@ fn parse_list<Bytes: Iterator<Item = u8>>(
             it.next();
             break;
         } else {
-            list.push(try_parse_value(it)?);
+            list.push(try_parse_value_from_peekable(it)?);
         }
     }
 
@@ -139,12 +141,9 @@ fn parse_integer<Bytes: Iterator<Item = u8>>(
     }
 }
 
-impl FromIterator<u8> for Value {
-    fn from_iter<T: IntoIterator<Item = u8>>(iter: T) -> Self {
-        let mut it = iter.into_iter().peekable();
-
-        try_parse_value(&mut it).unwrap()
-    }
+pub fn try_parse_value<T: Iterator<Item = u8>>(source: T) -> IParseResult<Value> {
+    let mut iter = source.into_iter().peekable();
+    try_parse_value_from_peekable(&mut iter)
 }
 
 #[cfg(test)]
