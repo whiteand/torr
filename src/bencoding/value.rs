@@ -37,7 +37,7 @@ pub enum Value {
 }
 
 impl Value {
-    fn get<'v>(&'v self, index: &Value) -> Option<&'v Value> {
+    pub fn get<'v>(&'v self, index: &Value) -> Option<&'v Value> {
         match index {
             Value::String(_) => match self {
                 Value::Dictionary(kv) => {

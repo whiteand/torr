@@ -1,9 +1,10 @@
 use std::process::exit;
+use torr::bencoding::utils::print_metainfo;
 
 fn main() {
     let path = get_file_path_from_args();
-    let metainfo = read_torrent_file(path);
-    println!("{:?}", metainfo);
+    let mut file = open_file(path);
+    print_metainfo(&mut file).unwrap();
 }
 
 fn get_file_path_from_args() -> String {
@@ -11,21 +12,6 @@ fn get_file_path_from_args() -> String {
         Some(path) => path,
         None => {
             println!("You should pass torrent file path as a single parameter");
-            exit(1);
-        }
-    }
-}
-
-fn read_torrent_file(path: String) -> torr::metainfo::MetaInfo {
-    let file = open_file(path);
-    read_metainfo_from_file(file)
-}
-
-fn read_metainfo_from_file(mut file: std::fs::File) -> torr::metainfo::MetaInfo {
-    match torr::metainfo::read::read(&mut file) {
-        Ok(metainfo) => metainfo,
-        Err(e) => {
-            println!("Error: {:?}", e);
             exit(1);
         }
     }
